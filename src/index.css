@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  overflow: hidden; /* Prevents scrollbars from appearing */
+  background-color: #0f172a; /* Dark Blue Background */
+  font-family: sans-serif;
+}
