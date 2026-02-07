@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef, useMemo, Suspense } from 'react';
-import { Plus, Search, User, X, Upload, Calendar, Share2, Image as ImageIcon } from 'lucide-react';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls, useGLTF, Stars } from '@react-three/drei';
+import React, { useState, useEffect, useRef } from 'react';
+import { Plus } from 'lucide-react';
+import LandingPage from './components/LandingPage';
+import MemoryForestScene from './components/MemoryForestScene';
 
 // --- 1. NAVBAR COMPONENT ---
 const Navbar = ({ onAddClick }) => (
@@ -87,59 +87,6 @@ const ViewMemoryModal = ({ memory, onClose }) => {
   );
 };
 
-// --- 4. THE SMART TREE COMPONENT ---
-// Now accepts 'path' (filename) and 'scale' (size)
-function ModelTree({ path, position, scale = 3 }) {
-  const { scene } = useGLTF(path);
-  const clone = useMemo(() => scene.clone(), [scene]);
-  return <primitive object={clone} scale={scale} position={position} />;
-}
-
-// --- 5. THE MAIN SCENE ---
-const MemoryForestScene = ({ memories, onLeafClick }) => {
-  return (
-    <Canvas camera={{ position: [15, 10, 15], fov: 50 }}>
-      {/* Lights */}
-      <ambientLight intensity={0.5} />
-      <directionalLight position={[10, 10, 5]} intensity={1} castShadow />
-      <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} />
-
-      <Suspense fallback={null}>
-        {/* --- TREE 1 (The Original) --- */}
-        <ModelTree path="/tree.glb" position={[0, -2, 0]} scale={3} />
-        
-        {/* --- TREE 2 (Your New File) --- */}
-        <ModelTree path="/tree2.glb" position={[10, -2, -5]} scale={3} />
-      </Suspense>
-
-      {/* Memories (Floating Spheres around Tree 1) */}
-      {memories.map((mem, i) => (
-        <mesh 
-          key={mem.id}
-          position={[Math.sin(i) * 4, 2 + (i * 0.5), Math.cos(i) * 4]}
-          onClick={(e) => { e.stopPropagation(); onLeafClick(mem); }}
-        >
-          <sphereGeometry args={[0.3, 16, 16]} />
-          <meshStandardMaterial 
-            color={mem.type === 'happy' ? '#4ade80' : '#60a5fa'} 
-            emissive={mem.type === 'happy' ? '#4ade80' : '#60a5fa'}
-            emissiveIntensity={0.5}
-          />
-        </mesh>
-      ))}
-
-      {/* Ground */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -2, 0]}>
-        <planeGeometry args={[100, 100]} />
-        <meshStandardMaterial color="#0f172a" transparent opacity={0.8} />
-      </mesh>
-      <gridHelper args={[100, 100, '#1e293b', '#0f172a']} position={[0, -1.99, 0]} />
-
-      <OrbitControls minDistance={5} maxDistance={30} maxPolarAngle={Math.PI / 2 - 0.1} />
-    </Canvas>
-  );
-};
-
 // --- 6. MAIN APP ---
 const INITIAL_MEMORIES = [
   { id: 1, title: "First Day", date: "2023-02-15", type: "happy", image: "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=300" },
@@ -149,10 +96,15 @@ export default function App() {
   const [memories, setMemories] = useState(INITIAL_MEMORIES);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedMemory, setSelectedMemory] = useState(null);
+  const [hasEnteredForest, setHasEnteredForest] = useState(false);
 
   const handleAddMemory = (newMemoryData) => {
     setMemories([...memories, { ...newMemoryData, id: Date.now() }]);
   };
+
+  if (!hasEnteredForest) {
+    return <LandingPage onEnter={() => setHasEnteredForest(true)} />;
+  }
 
   return (
     <div className="w-full h-screen bg-gray-900 relative overflow-hidden font-sans">
