@@ -224,10 +224,21 @@ Scene Components:
   e) Camera & Controls:
      • Initial position: [15, 10, 15]
      • Field of view: 50 degrees
-     • OrbitControls: Allows user to rotate, zoom, pan around scene
-     • Min distance: 5 units (can't zoom in too close)
-     • Max distance: 30 units (can't zoom out too far)
-     • Max polar angle: ~85 degrees (prevents upside-down view)
+     • Keyboard Controls (WASD/Arrow Keys):
+       - Arrow Up / W: Move forward
+       - Arrow Down / S: Move backward  
+       - Arrow Left / A: Move left
+       - Arrow Right / D: Move right
+       - Movement speed: 0.3 units per frame
+     • Mouse Controls (OrbitControls):
+       - Left mouse drag: Rotate camera view
+       - Mouse wheel: Zoom in/out
+       - Min distance: 15 units (can't zoom in too close)
+       - Max distance: 60 units (can't zoom out too far)
+       - Max polar angle: ~85 degrees (prevents upside-down view)
+     • Game-like Navigation: Users can freely explore the forest using
+       keyboard movement while simultaneously adjusting their view angle
+       with mouse controls for an immersive experience
 
 MEMORY DATA STRUCTURE
 ================================================================================
@@ -356,7 +367,9 @@ DEPENDENCIES & LIBRARIES
   • Handles rendering and updates efficiently
 
 @react-three/drei: Helper library for common 3D patterns
-  • OrbitControls: Mouse-based camera control
+  • OrbitControls: Mouse-based camera control (zoom, rotate, pan)
+  • useGLTF: Load 3D models in GLB/GLTF format
+  • Stars: Procedural starfield background
   • useGLTF: Hook for loading 3D model files
   • Stars: Pre-built starfield component
 
@@ -401,6 +414,8 @@ Current MVP Features:
   ✓ Create new memories
   ✓ View memory details
   ✓ 3D visualization
+  ✓ Game-like navigation (arrow keys/WASD + mouse controls)
+  ✓ Interactive memory orbs
   ✓ Basic UI with modals
 
 Not Yet Implemented (TODO):
@@ -487,6 +502,25 @@ Benefits of These Changes:
   • Professional presentation: Landing page improves credibility
   • Maintainable code: Single source of truth for scene component
 
+Version 1.2 Changes (February 7, 2026):
+
+5. GAME-LIKE NAVIGATION CONTROLS:
+   • Added CameraController component for keyboard-based movement
+   • Arrow keys (↑↓←→) for directional movement through the scene
+   • WASD keys as alternative input (W=forward, S=back, A=left, D=right)
+   • Smooth continuous movement at 0.3 units per frame
+   • Retained OrbitControls for mouse-based zoom and rotation
+   • Users can now explore the forest with game-like controls
+   • Hybrid control system: keyboard for position, mouse for view angle
+   • Enhanced immersion and user engagement
+
+Benefits of Navigation Update:
+  • Intuitive Controls: Familiar WASD/arrow key scheme from games
+  • Freedom of Movement: Explore the forest from any angle
+  • Better Memory Discovery: Navigate naturally to different memory orbs
+  • Enhanced Immersion: Game-like experience increases engagement
+  • Dual Input Methods: Keyboard + mouse work together seamlessly
+
 
 CONCLUSION
 ================================================================================
@@ -495,7 +529,7 @@ Memory Forest is an elegant application combining:
   1. Modern React patterns (hooks, state management, components)
   2. 3D visualization (Three.js for immersive experience)
   3. Intuitive UI (modals, forms, responsive design)
-  4. Interactive features (clickable objects, camera control)
+  4. Interactive features (clickable objects, game-like camera control)
 
 The project demonstrates professional web development practices including:
   • Component-based architecture
@@ -509,5 +543,6 @@ features to make this a complete memory management application.
 
 ================================================================================
 Document created: February 6, 2026
+Last updated: February 7, 2026
 Last updated: February 7, 2026 (v1.1 - Landing page, scene refactoring, 3D formats)
 ================================================================================

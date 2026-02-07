@@ -1,6 +1,7 @@
-import React, { useMemo, Suspense } from 'react';
-import { Canvas } from '@react-three/fiber';
+import React, { useMemo, Suspense, useRef, useEffect } from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, useGLTF, Stars } from '@react-three/drei';
+import { Vector3 } from 'three';
 
 // --- Helper Component for Loading Trees ---
 function ModelTree({ path, position, scale = 3 }) {
@@ -11,6 +12,70 @@ function ModelTree({ path, position, scale = 3 }) {
   const clone = useMemo(() => scene.clone(), [scene]);
   
   return <primitive object={clone} scale={scale} position={position} />;
+}
+
+// --- Camera Controller for Arrow Key Movement ---
+function CameraController() {
+  const keys = useRef({ 
+    ArrowUp: false, 
+    ArrowDown: false, 
+    ArrowLeft: false, 
+    ArrowRight: false,
+    w: false,
+    a: false,
+    s: false,
+    d: false
+  });
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (keys.current.hasOwnProperty(e.key)) {
+        keys.current[e.key] = true;
+      }
+    };
+
+    const handleKeyUp = (e) => {
+      if (keys.current.hasOwnProperty(e.key)) {
+        keys.current[e.key] = false;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, []);
+
+  useFrame(({ camera }) => {
+    const speed = 0.3;
+    const direction = new Vector3();
+
+    // Forward/Backward (Arrow Up/Down or W/S)
+    if (keys.current.ArrowUp || keys.current.w) {
+      direction.z -= speed;
+    }
+    if (keys.current.ArrowDown || keys.current.s) {
+      direction.z += speed;
+    }
+
+    // Left/Right (Arrow Left/Right or A/D)
+    if (keys.current.ArrowLeft || keys.current.a) {
+      direction.x -= speed;
+    }
+    if (keys.current.ArrowRight || keys.current.d) {
+      direction.x += speed;
+    }
+
+    // Apply movement to camera
+    if (direction.length() > 0) {
+      camera.position.add(direction);
+    }
+  });
+
+  return null;
 }
 
 const MemoryForestScene = ({ memories = [], onLeafClick }) => {
@@ -26,14 +91,15 @@ const MemoryForestScene = ({ memories = [], onLeafClick }) => {
       {/* 3. The Trees */}
       <Suspense fallback={null}>
         {/* Tree 1: Center (The Main Tree) */}
-        <ModelTree path="/land2.glb" position={[0, -3, 0]} scale={0.5} />
+        <ModelTree path="/land2.glb" position={[0, -3, 0]} scale={1.5} />
         
         {/* Tree 2: Background Right (The Second Tree) */}
         {/* Make sure you have 'tree2.glb' in your public folder! */}
-        <ModelTree path="/land.glb" position={[10, -1, -5]} scale={0.5} />
-        <ModelTree path="/land3.glb" position={[-10, -1, 5]} scale={0.5} />
+        <ModelTree path="/land.glb" position={[30, -1, -5]} scale={1.5} />
+        <ModelTree path="/land3.glb" position={[-30, -1, 5]} scale={1.5} />
         /*mushroom*/
-        <ModelTree path="/mushroom.glb" position={[-13, 4.5, 20]} scale={1} />
+        <ModelTree path="/mushroom.glb" position={[-40,15.5, 50]} scale={2.5} />
+        <ModelTree path="/mushroom.glb" position={[30,8.5, -55]} scale={2.5} />
         /*rock*/
         <ModelTree path="/rock.glb" position={[15, 10, 10]} scale={1} />
         /potion/
@@ -69,8 +135,9 @@ const MemoryForestScene = ({ memories = [], onLeafClick }) => {
       </mesh>
       <gridHelper args={[100, 100, '#1e293b', '#0f172a']} position={[0, -2.5, 0]} />
 
-      {/* 6. Controls */}
-      <OrbitControls minDistance={15} maxDistance={60} maxPolarAngle={Math.PI / 2 - 0.1} />
+      {/* 6. Camera Controls - Arrow Keys + Mouse Zoom/Rotate */}
+      <CameraController />
+      <OrbitControls minDistance={15} maxDistance={100} maxPolarAngle={Math.PI / 2 - 0.1} />
     </Canvas>
   );
 };
