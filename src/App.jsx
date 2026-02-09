@@ -1,8 +1,6 @@
-import React, { useState, useEffect, useRef, useMemo, Suspense } from 'react';
-import { Plus, Search, User, X, Upload, Calendar, Share2, Image as ImageIcon } from 'lucide-react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, useGLTF, Stars } from '@react-three/drei';
-import { Vector3 } from 'three';
+import React, { useState, useEffect, useRef } from 'react';
+import { Plus, Search, User, X, Upload, Calendar, Share2 } from 'lucide-react';
+import MemoryForestScene from './components/MemoryForestScene';
 
 // --- 1. NAVBAR COMPONENT ---
 const Navbar = ({ onAddClick }) => (
@@ -122,122 +120,8 @@ const ViewMemoryModal = ({ memory, onClose }) => {
   );
 };
 
-// --- 4. 3D SCENE HELPERS ---
-
-// A generic component to load any GLB file
-function ModelTree({ path, position, scale = 3, onClick }) {
-  const { scene } = useGLTF(path);
-  const clone = useMemo(() => scene.clone(), [scene]);
-  
-  return (
-    <primitive 
-      object={clone} 
-      scale={scale} 
-      position={position}
-      onClick={(e) => {
-        if (onClick) {
-          e.stopPropagation();
-          onClick(e);
-        }
-      }}
-      onPointerOver={() => { if(onClick) document.body.style.cursor = 'pointer'; }}
-      onPointerOut={() => { document.body.style.cursor = 'default'; }}
-    />
-  );
-}
-
-function CameraController() {
-  const keys = useRef({ 
-    ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false,
-    w: false, a: false, s: false, d: false
-  });
-
-  useEffect(() => {
-    const handleKeyDown = (e) => { if (keys.current.hasOwnProperty(e.key)) keys.current[e.key] = true; };
-    const handleKeyUp = (e) => { if (keys.current.hasOwnProperty(e.key)) keys.current[e.key] = false; };
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-    };
-  }, []);
-
-  useFrame(({ camera }) => {
-    const speed = 0.3;
-    const direction = new Vector3();
-    if (keys.current.ArrowUp || keys.current.w) direction.z -= speed;
-    if (keys.current.ArrowDown || keys.current.s) direction.z += speed;
-    if (keys.current.ArrowLeft || keys.current.a) direction.x -= speed;
-    if (keys.current.ArrowRight || keys.current.d) direction.x += speed;
-    if (direction.length() > 0) camera.position.add(direction);
-  });
-  return null;
-}
-
-// --- 5. MAIN MEMORY FOREST SCENE ---
-const MemoryForestScene = ({ memories = [], onLeafClick }) => {
-  return (
-    <Canvas camera={{ position: [15, 10, 15], fov: 50 }}>
-      {/* Lighting & Env */}
-      <ambientLight intensity={0.9} />
-      <directionalLight position={[10, 10, 5]} intensity={1.5} castShadow />
-      <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} />
-
-      <Suspense fallback={null}>
-        {/* --- STATIC ENVIRONMENT (Nadun's World) --- */}
-        <ModelTree path="/land2.glb" position={[0, -3, 0]} scale={1.5} />
-        <ModelTree path="/land.glb" position={[30, -1, -5]} scale={1.5} />
-        <ModelTree path="/land3.glb" position={[-30, -1, 5]} scale={1.5} />
-        
-        <ModelTree path="/rock.glb" position={[15, 10, 10]} scale={1} />
-        <ModelTree path="/potion.glb" position={[0, 1, -20]} scale={0.003} />
-        
-        {/* Decorative Giant Mushrooms */}
-        <ModelTree path="/mushroom.glb" position={[-40, 15.5, 50]} scale={2.5} />
-        <ModelTree path="/mushroom.glb" position={[30, 8.5, -55]} scale={2.5} />
-
-        {/* --- INTERACTIVE MEMORIES (Small Mushrooms) --- */}
-        {memories.map((mem, i) => {
-          // Circle placement logic
-          const angle = (i / (memories.length || 1)) * Math.PI * 2;
-          const radius = 8; 
-          const x = Math.sin(angle) * radius;
-          const z = Math.cos(angle) * radius;
-
-          return (
-            <ModelTree 
-              key={mem.id}
-              path="/mushroom.glb" 
-              position={[x, -3, z]} 
-              scale={1.5} 
-              onClick={() => {
-                console.log("Found Memory:", mem.title);
-                onLeafClick(mem);
-              }}
-            />
-          );
-        })}
-      </Suspense>
-
-      {/* Backup Ground */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -3.1, 0]}>
-        <planeGeometry args={[200, 200]} />
-        <meshStandardMaterial color="#0f172a" transparent opacity={0.2} />
-      </mesh>
-      
-      <CameraController />
-      <OrbitControls minDistance={10} maxDistance={100} maxPolarAngle={Math.PI / 2 - 0.1} />
-    </Canvas>
-  );
-};
-
-// --- 6. APP COMPONENT ---
-const INITIAL_MEMORIES = [
-  { id: 1, title: "First Day at Uni", date: "2023-02-15", type: "happy", image: "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=300" },
-  { id: 2, title: "Trip to Ella", date: "2023-08-10", type: "adventurous", image: "https://images.unsplash.com/photo-1588258524675-c62d02c5c9a1?auto=format&fit=crop&q=80&w=300" },
-  { id: 3, title: "Graduation Party", date: "2024-01-20", type: "happy", image: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&q=80&w=300" },
-];
+// --- 4. MAIN MEMORY FOREST SCENE ---
+const INITIAL_MEMORIES = [];
 
 export default function App() {
   const [memories, setMemories] = useState(INITIAL_MEMORIES);
@@ -255,6 +139,14 @@ export default function App() {
   return (
     <div className="w-full h-screen bg-gray-900 relative overflow-hidden font-sans">
       <Navbar onAddClick={() => setIsAddModalOpen(true)} />
+      
+      {/* --- MOVEMENT INSTRUCTIONS HUD --- */}
+      <div className="absolute bottom-6 left-6 z-20 bg-black/60 backdrop-blur-md p-4 rounded-lg text-white text-xs max-w-xs pointer-events-none">
+        <p className="font-semibold mb-2">🎮 Camera Controls:</p>
+        <p className="mb-1"><strong>WASD</strong> or <strong>Arrow Keys</strong> - Move camera</p>
+        <p className="mb-1"><strong>Mouse</strong> - Orbit around scene</p>
+        <p className="text-gray-300">🟢 Green circle = Starting point</p>
+      </div>
       
       <AddMemoryModal 
         isOpen={isAddModalOpen} 
